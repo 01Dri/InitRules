@@ -10,18 +10,23 @@ import (
 )
 
 var botID string
+var tokenPrefix string = "Bot "
 
-func main() {
+func getTokenBot() string {
 	enviromentVariableToken := "TOKEN_DISCORD_INIT_RULES"
-	var token string = os.Getenv(enviromentVariableToken)
-	dg, err := discordgo.New(token)
+	var tokenValue string = os.Getenv(enviromentVariableToken)
+	token := tokenPrefix + tokenValue
+	return token
+}
+func main() {
+	dg, err := discordgo.New(getTokenBot())
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	dg.AddHandlerOnce(onReady)
-	dg.Identify.Intents = discordgo.IntentGuildMessages
 	dg.AddHandler(messageCreate)
+	dg.Identify.Intents = discordgo.IntentGuildMessages
 	err = dg.Open()
 	if err != nil {
 		fmt.Println("error opening connection", err)
@@ -31,7 +36,7 @@ func main() {
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
-	dg.Close()
+	defer dg.Close()
 
 }
 func onReady(bot *discordgo.Session, event *discordgo.Ready) {
@@ -42,9 +47,8 @@ func onReady(bot *discordgo.Session, event *discordgo.Ready) {
 func messageCreate(bot *discordgo.Session, message *discordgo.MessageCreate) {
 	fmt.Printf("Author: %s (%s)\n", message.Author.Username, message.Author.ID)
 	fmt.Printf("Content: %s\n", message.Content)
-
 	if message.Author.ID == botID {
-		return
+		return // Ignore the message of bot
 	}
 
 	if message.Content == "!start" {
@@ -53,7 +57,5 @@ func messageCreate(bot *discordgo.Session, message *discordgo.MessageCreate) {
 		if err != nil {
 			fmt.Println(err)
 		}
-	} else {
-		fmt.Println("nao ta lendo a mensagem n dog")
 	}
 }
