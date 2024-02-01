@@ -10,7 +10,9 @@ import (
 )
 
 var botID string
-var tokenPrefix string = "Bot "
+var tokenPrefix string = "Bot "                // Token for discord need Bot prefix
+var guildID string = "1179517927679078521"     // ID server
+var guildRoleId string = "1202703396981964871" // ID role main
 
 func getTokenBot() string {
 	enviromentVariableToken := "TOKEN_DISCORD_INIT_RULES"
@@ -26,6 +28,8 @@ func main() {
 	}
 	dg.AddHandlerOnce(onReady)
 	dg.AddHandler(messageCreate)
+	dg.AddHandler(onJoinSetDefaultRole)
+
 	dg.Identify.Intents = discordgo.IntentGuildMessages
 	err = dg.Open()
 	if err != nil {
@@ -45,8 +49,6 @@ func onReady(bot *discordgo.Session, event *discordgo.Ready) {
 }
 
 func messageCreate(bot *discordgo.Session, message *discordgo.MessageCreate) {
-	fmt.Printf("Author: %s (%s)\n", message.Author.Username, message.Author.ID)
-	fmt.Printf("Content: %s\n", message.Content)
 	if message.Author.ID == botID {
 		return // Ignore the message of bot
 	}
@@ -56,6 +58,18 @@ func messageCreate(bot *discordgo.Session, message *discordgo.MessageCreate) {
 		_, err := bot.ChannelMessageSend(message.ChannelID, "hello, world!!")
 		if err != nil {
 			fmt.Println(err)
+		}
+	}
+}
+
+func onJoinSetDefaultRole(session *discordgo.Session, message *discordgo.MessageCreate) {
+	user := message.Author
+	if user != nil {
+		if message.Type == discordgo.MessageTypeGuildMemberJoin {
+			user := message.Author
+			fmt.Println("Usuário entrou no servidor:", user.Username)
+			session.GuildMemberRoleAdd(guildID, user.ID, guildRoleId)
+			fmt.Println("Cargo main setado! para o usuario: ", user.Username)
 		}
 	}
 }
