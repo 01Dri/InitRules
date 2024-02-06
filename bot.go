@@ -10,7 +10,6 @@ import (
 )
 
 func StartBot() {
-
 	dg, err := discordgo.New(GetTokenBot())
 	if err != nil {
 		fmt.Println(err)
